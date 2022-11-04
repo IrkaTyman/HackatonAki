@@ -7,6 +7,7 @@ import {Micro, PaperClip, RightArrow, Send} from "../shared/icons";
 import {getMessages as getMessagesDB, getChat} from "../../firebase/get";
 import {listenChat} from "../../firebase/listeners";
 import {sendMessage as sendMessageDB} from "../../firebase/send-message";
+import {useCustomizedDayjs} from "../../hooks/useCustomizedDayjs";
 
 export function Chat() {
     const userContext = useContext(UserContext)
@@ -16,6 +17,7 @@ export function Chat() {
     const [loading, setLoading] = useState(true)
     const [text, setText] = useState("")
     const history = useHistory()
+    const dayjs = useCustomizedDayjs()
 
     useEffect(() => {
         getMessagesDB(uid, setMessages)
@@ -65,7 +67,7 @@ export function Chat() {
                                 <div style={{backgroundImage: `url("${message.senderImageUrl}")`}}
                                      className="img_user"/>}
                             <p className="text">{message.text}</p>
-                            <p className="date_send">{(new Date(message.dateSend)).getHours() + ':' + (new Date(message.dateSend)).getMinutes()}</p>
+                            <p className="date_send">{dayjs(message.dateSend).format("hh:mm")}</p>
                         </div>
                     ))}
                 </div>

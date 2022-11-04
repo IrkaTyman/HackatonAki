@@ -1,12 +1,13 @@
 import React, {useContext, useState, useEffect} from 'react';
 import {UserContext} from "../../context/user-context";
 import {NavLink, useHistory} from "react-router-dom";
-import {Chats, Messages} from "../../types";
+import {Chats, Dialogs, Message, Messages} from "../../types";
 import './style.scss'
 import {Chat, Grid, Home as HomeIcon, Search} from "../shared/icons";
-import {getFirstMessage} from "../../firebase/get";
+import {getLastMessage as getLastMessageDB} from "../../firebase/get";
 import {searchCompanionDB} from "../../firebase/search-companion";
 import {useCustomizedDayjs} from "../../hooks/useCustomizedDayjs";
+import {listenChat} from "../../firebase/listeners";
 
 export function Messenger() {
     const userContext = useContext(UserContext)
@@ -18,21 +19,29 @@ export function Messenger() {
     useEffect(() => {
         if (!userContext) return;
 
-        userContext.user.chats && Object.keys(userContext.user.chats).map(uid => {
-            getFirstMessage(uid, (message) => setMessages({...messages, [uid]: message}))
-        })
+        function setMessage(message:Message[], uid:string){
+            setMessages((messages) => ({...messages, [uid]:message}))
+        }
 
-        userContext.user.dialogs && Object.keys(userContext.user.dialogs).map(uid => {
-            getFirstMessage(uid, (message) => setMessages({...messages, [uid]: message}))
-        })
+        function getLastMessage(chats:any){
+            Object.keys(chats).map(uid => {
+                getLastMessageDB(uid, (message) => setMessage(message,uid))
+                listenChat(uid,() =>  getLastMessageDB(uid, (message) => setMessage(message,uid)))
+            })
+        }
+
+        getLastMessage(userContext.user.chats)
+        getLastMessage(userContext.user.dialogs)
 
         setLoading(false)
     }, [])
 
     function searchCompanion() {
         if (!userContext) return;
-        searchCompanionDB(Object.values(userContext.user.dialogs).map(dialog => dialog.userUid),
-            userContext.user,
+        let dialogUIDs = userContext.user.dialogs
+            ? Object.values(userContext.user.dialogs).map(dialog => dialog.userUid)
+            : [];
+        searchCompanionDB(dialogUIDs, userContext.user,
             (uid) => history.push('/messenger/dialog/' + uid)
         )
     }
@@ -81,7 +90,7 @@ export function Messenger() {
                         <div className="chat_info">
                             <div className="chat_top_line w100per jc_sb">
                                 <p className="chat_name">{dialog.name}</p>
-                                <p className=" chat_time min_text ">{messages[dialog.uid] && new Date(messages[dialog.uid][0].dateSend).toLocaleTimeString()}</p>
+                                <p className=" chat_time min_text ">{messages[dialog.uid] && dayjs(messages[dialog.uid][0].dateSend).format("hh:mm")}</p>
                             </div>
                             <p className="chat_message w100per">
                                 {messages && messages[dialog.uid]

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import './App.scss';
 import {Switch, Route} from 'react-router-dom';
 import Greeting from "./components/greeting/greeting";
@@ -19,6 +19,8 @@ import {SignIn} from "./components/sign-in/sign-in";
 import {Messenger} from "./components/messenger/messenger";
 import {Chat} from "./components/messenger/chat";
 import {Dialog} from "./components/messenger/dialog";
+import {listenValue, removeListenerValue} from "./firebase/listeners";
+import {getUser} from "./firebase/get";
 
 function App() {
     const [user, setUser] = useState<User>({
@@ -39,6 +41,13 @@ function App() {
     })
     const [UID, setUID] = useState("")
     const [isOAuth, setIsOAuth] = useState(false)
+
+    useEffect(()=>{
+        listenValue('/users/'+UID,()=>getUser(UID, setUser))
+
+        return () => removeListenerValue('/users/'+UID)
+    },[UID])
+
     return (
         <div className="mobile-container w100per jc_c">
             <div className="app h100per">

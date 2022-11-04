@@ -55,7 +55,6 @@ export type Dialog = {
     members:{name:string,surname:string,uid:string, imageUrl:string}[]
 }
 
-
 export type Messages = {
     [key:string]:Message[]
 }
@@ -72,4 +71,7 @@ export type Message = {
 
 export type Chats={
     [key:string]:Chat
+}
+export type Dialogs={
+    [key:string]:Dialog
 }

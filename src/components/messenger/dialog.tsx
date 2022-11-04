@@ -5,8 +5,9 @@ import {Chat as ChatType, Message, User} from "../../types";
 import './style.scss'
 import {Micro, PaperClip, RightArrow, Send} from "../shared/icons";
 import {getChat, getMessages as getMessagesDB, getUser} from "../../firebase/get";
-import {listenChat} from "../../firebase/listeners";
+import {listenChat, removeListenerValue} from "../../firebase/listeners";
 import {sendMessage as sendMessageDB} from "../../firebase/send-message";
+import {useCustomizedDayjs} from "../../hooks/useCustomizedDayjs";
 
 export function Dialog() {
     const userContext = useContext(UserContext)
@@ -17,6 +18,7 @@ export function Dialog() {
     const [text, setText] = useState("")
     const [chat, setChat] = useState<ChatType | null>(null)
     const history = useHistory()
+    const dayjs = useCustomizedDayjs()
 
     useEffect(() => {
         if (!userContext) return;
@@ -26,12 +28,14 @@ export function Dialog() {
         getChat(uid, (chat) => {
             setChat(chat)
             setLoading(false)
-        })
+        }, '/dialogs/')
 
         getUser(userContext.user.dialogs[uid].userUid, (user) => {
             setCompanion(user)
             setLoading(false)
         })
+
+        return () => removeListenerValue('/chats/' + uid)
     }, [])
 
     function sendMessage(e: React.KeyboardEvent) {
@@ -63,7 +67,7 @@ export function Dialog() {
                                 <div style={{backgroundImage: `url("${message.senderImageUrl}")`}}
                                      className="img_user"/>}
                             <p className="text">{message.text}</p>
-                            <p className="date_send">{(new Date(message.dateSend)).getHours() + ':' + (new Date(message.dateSend)).getMinutes()}</p>
+                            <p className="date_send">{dayjs(message.dateSend).format("hh:mm")}</p>
                         </div>
                     ))}
                 </div>
