@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {UserContext} from "../../context/user-context";
 import {InputEmpty} from "../shared/input-empty";
 import './style.scss'
@@ -8,6 +8,7 @@ import {signInEmail} from "../../firebase/sign";
 
 export function SignIn() {
     const {form, errors, changeForm, checkErrors} = useForm(["email", "password"])
+    const [incorrect, setIncorrect] = useState(false)
     const userContext = useContext(UserContext)
     const history = useHistory()
 
@@ -21,22 +22,29 @@ export function SignIn() {
                 (uid) => {
                     userContext.setUID(uid);
                     history.push('/home')
-                })
+                }, () => setIncorrect(true)
+            )
         }
+    }
+
+    function change(key:string, value:string){
+        changeForm(key,value)
+        incorrect && setIncorrect(false)
     }
 
     if (!form || !errors) return null;
     return (
         <div className="sign_in_page  jc_c fd_c page h100per">
             <div className="big-header">Тиньк</div>
+            {incorrect && <p className="error_message">Неверная почта или пароль</p>}
             <InputEmpty<"email"> value={form.email}
-                                 change={changeForm}
+                                 change={change}
                                  placeholder={""}
                                  helpText={"Email"}
                                  keyField={"email"}
                                  errorText={errors.email.empty ? "Введите корретную почту" : ""}/>
             <InputEmpty<"password"> value={form.password}
-                                    change={changeForm}
+                                    change={change}
                                     type="password"
                                     placeholder={""}
                                     helpText={"Пароль"}
