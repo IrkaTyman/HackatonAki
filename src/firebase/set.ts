@@ -11,5 +11,5 @@ export function setMember(chatUid:string,user:User){
 }
 
 export function setUser(user:User){
-
+    set(ref(db, '/users/' + user.uid), user)
 }

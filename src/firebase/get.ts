@@ -1,11 +1,15 @@
-import {get, limitToFirst, query, ref} from "firebase/database";
+import {get, limitToLast, query, ref} from "firebase/database";
 import {db} from "./initialize";
 import {Chats, Message} from "../types";
 import {TreeNode} from "react-dropdown-tree-select";
 
-export function getUser(uid: string, setUser: (user: any) => void) {
+export function getUser(uid: string, setUser: (user: any) => void, addUser?:() => void) {
     get(ref(db, '/users/' + uid))
-        .then(snap => snap.val() && setUser(snap.val()))
+        .then(snap => {
+            if(snap.exists()) setUser(snap.val())
+            else addUser && addUser()
+        })
+        .catch(err => console.log(err))
 }
 
 export function getChats(interests: string[], setChats: (chats: Chats) => void) {
@@ -23,15 +27,15 @@ export function getChats(interests: string[], setChats: (chats: Chats) => void) 
         })
 }
 
-export function getChat(uid: string, setChats: (chat: any, uid: string) => void) {
-    get(ref(db, '/chats/' + uid))
+export function getChat(uid: string, setChats: (chat: any, uid: string) => void, url:string="/chats/") {
+    get(ref(db, (url || '/chats/') + uid))
         .then(snap => snap.val() && setChats(snap.val(), uid))
         .catch(error => console.log(error))
 }
 
-export function getFirstMessage(chatUid: string, setMessage: (message: any) => void) {
+export function getLastMessage(chatUid: string, setMessage: (message: any) => void) {
     const chatMessageRef = ref(db, '/messages/' + chatUid)
-    get(query(chatMessageRef, limitToFirst(1)))
+    get(query(chatMessageRef, limitToLast(1)))
         .then(snap => snap.val() && setMessage(Object.values(snap.val())))
 }
 

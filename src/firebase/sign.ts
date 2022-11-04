@@ -5,13 +5,15 @@ import {
     signInWithPopup
 } from "firebase/auth";
 import {auth} from "./initialize";
+import {User} from "../types";
+import {getUser} from "./get";
 
-export function signInGoogle(setUser:(user:any) => void) {
+export function signInGoogle(signUp:(user:any) => void, signIn:(user:User) => void) {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
         .then((result) => {
             const user = result.user;
-            setUser(user)
+            getUser(user.uid, signIn,() => signUp(user))
         }).catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;

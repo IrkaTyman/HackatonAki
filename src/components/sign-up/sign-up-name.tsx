@@ -21,7 +21,6 @@ export function SingUpName() {
         if (!value != error[key]) {
             error[key] = !value;
             setError(error)
-            console.log(error)
         }
         user[key] = value;
         setUser({...user});

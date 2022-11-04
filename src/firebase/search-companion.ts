@@ -1,23 +1,24 @@
 import {get, push, ref, set} from "firebase/database";
 import {User} from "../types";
 import {db} from "./initialize";
-export function searchCompanionDB(dialogsUid:string[], user:User, goChat:(userUid:string)=>void){
+
+export function searchCompanionDB(dialogsUid: string[], user: User, goChat: (userUid: string) => void) {
     get(ref(db, '/users'))
         .then(snap => {
             let currUsers: User[] = Object.values(snap.val())
             let hasChange = false
             let interestsList = Object.keys(user.interests)
 
-            let filterUsers = currUsers.filter(user => {
+            let filterUsers = currUsers.filter(companion => {
                 return (dialogsUid
-                    ? !dialogsUid.includes(user.uid)
-                    : true) && user.uid != user.uid
+                    ? !dialogsUid.includes(companion.uid)
+                    : true) && companion.uid != user.uid
             });
 
             interestsList.forEach(key => {
-                currUsers = filterUsers;
+                currUsers = [...filterUsers];
                 filterUsers = filterUsers.filter(user => user.interests[key] && user.interests[key].priority >= user.interests[key].priority)
-                if (filterUsers.length == 0) filterUsers = currUsers;
+                if (filterUsers.length == 0) filterUsers = [...currUsers];
                 else hasChange = true
             })
 
@@ -29,36 +30,35 @@ export function searchCompanionDB(dialogsUid:string[], user:User, goChat:(userUi
                     orderRelevantPeople = i
                 }
             })
-            if (hasChange) {
-                let companion = filterUsers[orderRelevantPeople]
-                let dialogRef = push(ref(db, '/dialogs'))
-                set(ref(db, '/users/' + user.uid + '/dialogs/' + dialogRef.key), {
-                    name: companion.name,
-                    surname: companion.surname,
-                    imageUrl: companion.imageUrl,
-                    userUid: companion.uid,
-                    uid:dialogRef.key
-                });
 
-                set(ref(db, '/users/' +companion.uid + '/dialogs/' + dialogRef.key), {
-                    name:user.name,
-                    surname:user.surname,
-                    imageUrl:user.imageUrl,
-                    userUid: user.uid,
-                    uid:dialogRef.key
-                });
+            let companion = filterUsers[orderRelevantPeople]
 
-                set(dialogRef,{
-                    interests:interestsList.filter(interest => companion.interests[interest]),
-                    members:[
-                        {name:user.name, surname:user.surname, imageUrl:user.imageUrl, uid:user.uid},
-                        {name:companion.name, surname: companion.surname, imageUrl: companion.imageUrl, uid: companion.uid}
-                    ],
-                    uid:dialogRef.key
-                })
-                goChat(filterUsers[0].uid)
-            } else {
+            let dialogRef = push(ref(db, '/dialogs'))
+            set(ref(db, '/users/' + user.uid + '/dialogs/' + dialogRef.key), {
+                name: companion.name,
+                surname: companion.surname,
+                imageUrl: companion.imageUrl,
+                userUid: companion.uid,
+                uid: dialogRef.key
+            });
 
-            }
+            set(ref(db, '/users/' + companion.uid + '/dialogs/' + dialogRef.key), {
+                name: user.name,
+                surname: user.surname,
+                imageUrl: user.imageUrl,
+                userUid: user.uid,
+                uid: dialogRef.key
+            });
+
+            set(dialogRef, {
+                interests: interestsList.filter(interest => companion.interests[interest]),
+                members: [
+                    {name: user.name, surname: user.surname, imageUrl: user.imageUrl, uid: user.uid},
+                    {name: companion.name, surname: companion.surname, imageUrl: companion.imageUrl, uid: companion.uid}
+                ],
+                uid: dialogRef.key
+            })
+            goChat(filterUsers[0].uid)
+
         })
 }

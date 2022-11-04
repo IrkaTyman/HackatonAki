@@ -37,11 +37,9 @@ export function SignUpChats() {
         if (!userContext) return;
 
         if (selected.length > 0) {
-            selected.map(uid => {
-                setMember(uid, userContext.user)
-            })
-
             selected.forEach(uid => {
+                setMember(uid, userContext.user)
+
                 userContext.user.chats[uid] = {
                     name: chats[uid].name,
                     uid: uid,
@@ -49,7 +47,6 @@ export function SignUpChats() {
                 }
             })
         }
-
         userContext.setUID(userContext.user.uid)
         setUser(userContext.user)
 

@@ -90,16 +90,24 @@
 
   .messages-wrapper {
     overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
 
     .messages_scroll {
       width: 100%;
-      padding: 30px;
+      padding: 10px 30px;
 
       .message {
         position: relative;
-        padding: 8px 40px 8px 10px;
+        padding: 8px 12px 16px 8px;
         border-radius: 13px;
-        background-color: $blue;
+        min-width: 44px;
+        background-color: #336aff;
         color: #fff;
         margin-left: auto;
         margin-bottom: 5px;
@@ -120,16 +128,13 @@
         .name_sender {
           font-size: 10px;
           color: #fff;
-          position: absolute;
-          top: 4px;
-          left: 10px;
         }
 
         &.left {
-          padding: 12px 40px 10px 10px;
+          padding: 8px 12px 16px 10px;
           margin-left: 18px;
           margin-right: auto;
-          color: $black;
+          color: #000;
           background-color: #E1E3E5;
 
           .date_send, .name_sender {
