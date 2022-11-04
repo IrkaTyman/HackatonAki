@@ -1,0 +1,51 @@
+@import "../../styles/color";
+
+.greating_page {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+
+  .big-header {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+  }
+
+  .greating_buttons {
+    margin-top: 70px;
+
+    .greating_sing_on {
+      margin-bottom: 10px;
+    }
+  }
+
+  .google {
+    height: 20px;
+    width: 20px;
+    margin-top: 15px
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 181px;
+    height: 271px;
+    left: 256px;
+    top: -60.95px;
+    border-radius: 50%/50%;
+    background: #FFF065;
+    transform: rotate(-31.68deg);
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    width: 181px;
+    height: 271px;
+    left: -109px;
+    bottom: -90px;
+    border-radius: 50%/50%;
+    background: #FFF065;
+    transform: rotate(-31.68deg);
+  }
+}
