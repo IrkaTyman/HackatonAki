@@ -1,37 +1,28 @@
 import React, {useContext, useState, useEffect} from 'react'
 import {UserContext} from "../../context/user-context";
-import {AppContext} from "../../context/app-context";
 import {Chats} from "../../types";
-import {set, ref, push, get} from 'firebase/database'
 import {CheckBox} from "../shared/check-box";
 import {useHistory} from "react-router-dom";
 import cat4 from '../../image/cat4.png'
+import {getChats} from "../../firebase/get";
+import {setUser, setMember} from "../../firebase/set";
 
 export function SignUpChats() {
     const userContext = useContext(UserContext)
-    const appContext = useContext(AppContext)
     const [loading, setLoading] = useState(true)
     const [chats, setChats] = useState<Chats>({})
     let [selected, setSelected] = useState<string[]>([])
     const history = useHistory()
 
     useEffect(() => {
-        if (!appContext || !userContext) return
-        get(ref(appContext.db, '/chats'))
-            .then(snap => {
-                let chats = snap.val()
-                let currChats: Chats = {}
-                let allInterests = Object.keys(userContext.user.mainInterests)
-                    .concat(Object.keys(userContext.user.interests))
-                Object.keys(chats).map(key => {
-                    if (allInterests.includes(chats[key].interest)) {
-                        currChats[key] = chats[key]
-                    }
-                })
+        if (!userContext) return
 
-                setChats(currChats)
-                setLoading(false)
-            })
+        let allInterests = Object.keys(userContext.user.mainInterests)
+            .concat(Object.keys(userContext.user.interests))
+        getChats(allInterests, (chats) => {
+            setChats(chats)
+            setLoading(false)
+        })
     }, [])
 
     function select(checked: boolean, uid: string) {
@@ -43,15 +34,11 @@ export function SignUpChats() {
     }
 
     function submitChats() {
-        if (!appContext || !userContext) return;
+        if (!userContext) return;
 
         if (selected.length > 0) {
             selected.map(uid => {
-                set(ref(appContext.db, '/chats/' + uid + '/members/' + userContext.user.uid), {
-                    name: userContext.user.name,
-                    surname: userContext.user.surname,
-                    uid: userContext.user.uid
-                })
+                setMember(uid, userContext.user)
             })
 
             selected.forEach(uid => {
@@ -61,12 +48,12 @@ export function SignUpChats() {
                     imageUrl: chats[uid].imageUrl
                 }
             })
-
-            userContext.setUID(userContext.user.uid)
-
-            set(ref(appContext.db, '/users/' + userContext.user.uid), userContext.user)
-            history.push('/home')
         }
+
+        userContext.setUID(userContext.user.uid)
+        setUser(userContext.user)
+
+        history.push('/home')
     }
 
     if (loading) return null;
@@ -78,8 +65,8 @@ export function SignUpChats() {
             </p>
             <img src={cat4} alt="" className="cat"/>
             <p className="weight700">Чаты для тебя</p>
-            {Object.keys(chats).map(uidChat => (
-                <div className="chat_container ai_c w100per">
+            {Object.keys(chats).map((uidChat, i) => (
+                <div key={i} className="chat_container ai_c w100per">
                     <img src={chats[uidChat].imageUrl} alt="" className="chat_image"/>
                     <div className="chat_info">
                         <p className="chat_name">{chats[uidChat].name}</p>

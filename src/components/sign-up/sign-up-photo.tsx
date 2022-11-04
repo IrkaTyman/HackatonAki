@@ -1,57 +1,41 @@
 import React, {useState, useContext, useEffect, useRef} from "react";
-import {AppContext} from "../../context/app-context";
 import {UserContext} from "../../context/user-context";
-import {ref, getDownloadURL, uploadBytes} from 'firebase/storage'
 import './style.scss';
-import {toast} from "react-toastify";
 import {useHistory} from "react-router-dom";
+import {loadImage, getUrl} from "../../firebase/image-action";
 
-export function SignUpImage() {
+export function SignUpPhoto() {
     const [image, setImage] = useState("")
     const [defaultImage, setDefaultImage] = useState<null | string>(null)
     const [loading, setLoading] = useState(true)
-    const appContext = useContext(AppContext)
     const userContext = useContext(UserContext)
     const [error, setError] = useState(false);
     const inputRef = useRef<HTMLInputElement | null>(null)
     const history = useHistory();
 
     useEffect(() => {
-        appContext
-        && getDownloadURL(ref(appContext.storage, 'images/default/cat2.png'))
-            .then(url => {
-                setLoading(false)
-                setDefaultImage(url)
-            })
-            .catch(() => {
-                setLoading(false)
-            })
+        getUrl('images/default/cat2.png', (url) => {
+            setLoading(false)
+            setDefaultImage(url)
+        })
     }, [])
 
     function load() {
-        if (!appContext || !inputRef.current || !inputRef.current.files || !userContext) return
+        if (!inputRef.current || !inputRef.current.files || !userContext) return
 
         let file = inputRef.current.files.item(0);
-
         if (file == null) return;
+
         const format = new RegExp("(.*?)\.(png|jpg|jpeg)$")
         if (!(format.test(file.name))) setError(true)
         else {
-
             setError(false);
-            const storageRef = ref(appContext.storage, "images/users/" + userContext.user.uid +"/" + file.name);
-            uploadBytes(storageRef, file)
-                .then(() => {
-                    getDownloadURL(storageRef)
-                        .then(url => setImage(url))
-                        .catch(() => toast.error("Произошла ошибка"))
-                })
-                .catch(() => toast.error("Произошла ошибка"))
+            loadImage("images/users/" + userContext.user.uid, file, setImage)
         }
     }
 
-    function submitImage(){
-        if(error || !userContext) return;
+    function submitImage() {
+        if (error || !userContext) return;
         userContext.user.imageUrl = image || defaultImage;
         userContext.setUser({...userContext.user})
         history.push("/sign-up/main-interests")
@@ -62,7 +46,7 @@ export function SignUpImage() {
         <div className="sign_up_photo_page page ai_fs fd_c h100per">
             <div className="big-header">Добавишь фото?</div>
             <div className="add_photo_container ai_c fd_c w100per">
-                <img className="add_photo_img" src={image || defaultImage || ""}/>
+                <img alt="your avatar" className="add_photo_img" src={image || defaultImage || ""}/>
                 <div className="little_yellow_btn">Сделать фото</div>
                 <label htmlFor="upload-photo">Загрузить из галереи</label>
                 <input type="file" name="photo" id="upload-photo" ref={inputRef} onChange={load}/>

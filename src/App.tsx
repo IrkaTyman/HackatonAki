@@ -1,17 +1,19 @@
 import React, {useState} from 'react';
 import './App.scss';
-import {Switch, Route, Link} from 'react-router-dom';
+import {Switch, Route} from 'react-router-dom';
 import Greeting from "./components/greeting/greeting";
-import {SingUpName} from "./components/sign-up";
 import {User} from "./types";
 import {UserContext} from './context/user-context'
-import {SignUpImage} from "./components/sign-up/sign-up-photo";
 import {ToastContainer} from "react-toastify";
-import {SignUpEmailPassword} from "./components/sign-up/sign-up-email-password";
-import {SignUpMainInterests} from "./components/sign-up/sign-up-main-interests";
-import {SignUpSecondaryInterests} from "./components/sign-up/sign-up-secondary-interests";
-import {SignUpRepetitionInterests} from "./components/sign-up/sign-up-repeatition-interests";
-import {SignUpChats} from "./components/sign-up/sign-up-chats";
+import {
+    SignUpEmailPassword,
+    SignUpChats,
+    SignUpMainInterests,
+    SignUpRepetitionInterests,
+    SingUpName,
+    SignUpSecondaryInterests,
+    SignUpPhoto
+} from "./components/sign-up";
 import {Home} from "./components/home/home";
 import {SignIn} from "./components/sign-in/sign-in";
 import {Messenger} from "./components/messenger/messenger";
@@ -21,7 +23,7 @@ import {Dialog} from "./components/messenger/dialog";
 function App() {
     const [user, setUser] = useState<User>({
         name: null,
-        activity:50,
+        activity: 50,
         surname: null,
         location: null,
         interests: {},
@@ -47,7 +49,7 @@ function App() {
                                 <SingUpName/>
                             </Route>
                             <Route path="/sign-up/photo">
-                                <SignUpImage/>
+                                <SignUpPhoto/>
                             </Route>
                             <Route path="/sign-up/email-password">
                                 <SignUpEmailPassword/>

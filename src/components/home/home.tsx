@@ -1,23 +1,18 @@
 import React, {useContext, useState, useEffect} from 'react';
 import {UserContext} from "../../context/user-context";
-import {AppContext} from "../../context/app-context";
 import '../style.scss'
 import './style.scss'
-import {get, ref} from 'firebase/database'
 import {NavLink} from "react-router-dom";
 import {Chat, Grid, Home as HomeIcon} from "../shared/icons";
+import {getUser} from "../../firebase/get";
 
 export function Home() {
     const userContext = useContext(UserContext)
-    const appContext = useContext(AppContext)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        if (!userContext || !appContext) return;
-        get(ref(appContext.db, '/users/' + userContext.UID))
-            .then(snap => {
-                userContext.setUser(snap.val())
-            })
+        if (!userContext) return;
+        getUser(userContext.UID,userContext.setUser);
     }, [])
 
     if (!userContext) return null;

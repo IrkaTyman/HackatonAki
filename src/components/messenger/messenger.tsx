@@ -1,102 +1,43 @@
 import React, {useContext, useState, useEffect} from 'react';
-import {AppContext} from "../../context/app-context";
 import {UserContext} from "../../context/user-context";
 import {NavLink, useHistory} from "react-router-dom";
-import {Chats, Message, Messages, User} from "../../types";
-import {get, ref, limitToFirst, query, onChildAdded, push, set} from 'firebase/database'
+import {Chats, Messages} from "../../types";
 import './style.scss'
 import {Chat, Grid, Home as HomeIcon, Search} from "../shared/icons";
+import {getFirstMessage} from "../../firebase/get";
+import {searchCompanionDB} from "../../firebase/search-companion";
+import {useCustomizedDayjs} from "../../hooks/useCustomizedDayjs";
 
 export function Messenger() {
     const userContext = useContext(UserContext)
-    const appContext = useContext(AppContext)
-    const [chats, setChats] = useState<Chats>({})
     const [messages, setMessages] = useState<Messages>({})
     const [loading, setLoading] = useState(true)
+    const dayjs = useCustomizedDayjs()
     const history = useHistory()
 
     useEffect(() => {
-        if (!appContext || !userContext) return;
-        userContext.user.chats && Object.keys(userContext.user.chats).map(uid => {
-            get(ref(appContext.db, '/chats/' + userContext.user.chats[uid].uid))
-                .then(snap => {
-                    chats[userContext.user.chats[uid].uid] = snap.val()
-                    setChats({...chats})
-                })
-                .catch(error => console.log(error))
+        if (!userContext) return;
 
-            const chatMessageRef = ref(appContext.db, '/messages/' + uid)
-            get(query(chatMessageRef, limitToFirst(1)))
-                .then(snap => {
-                    if (snap.val()) {
-                        messages[uid] = Object.values(snap.val())
-                        setMessages(messages)
-                    }
-                })
-            onChildAdded(chatMessageRef, (data) => {
-                //console.log(data)
-            })
+        userContext.user.chats && Object.keys(userContext.user.chats).map(uid => {
+            getFirstMessage(uid, (message) => setMessages({...messages, [uid]: message}))
         })
 
         userContext.user.dialogs && Object.keys(userContext.user.dialogs).map(uid => {
-            console.log(userContext.user.dialogs)
-            const chatMessageRef = ref(appContext.db, '/messages/' + userContext.user.uid + '/' + uid)
-            get(query(chatMessageRef, limitToFirst(1)))
-                .then(snap => {
-                    if (snap.val()) {
-                        messages[uid] = Object.values(snap.val())
-                        setMessages(messages)
-                    }
-                })
-            onChildAdded(chatMessageRef, (data) => {
-                //console.log(data)
-            })
+            getFirstMessage(uid, (message) => setMessages({...messages, [uid]: message}))
         })
 
         setLoading(false)
     }, [])
 
     function searchCompanion() {
-        if (!appContext || !userContext) return;
-        get(ref(appContext.db, '/users'))
-            .then(snap => {
-                let currUsers: User[] = Object.values(snap.val())
-                let hasChange = false
-                let filterUsers = currUsers.filter(user => {
-                    return (userContext.user.dialogs
-                        ? !Object.keys(userContext.user.dialogs).includes(user.uid)
-                        : true) && user.uid != userContext.user.uid
-                });
-                Object.keys(userContext.user.interests).forEach(key => {
-                    currUsers = filterUsers;
-                    filterUsers = filterUsers.filter(user => user.interests[key] && user.interests[key].priority >= userContext.user.interests[key].priority)
-                    if (filterUsers.length == 0) filterUsers = currUsers;
-                    else hasChange = true
-                })
-                console.log(filterUsers)
-                let maxActivity = 0;
-                let orderRelevantPeople = -1;
-                filterUsers.forEach((user, i) => {
-                    if (user.activity > maxActivity) {
-                        maxActivity = user.activity;
-                        orderRelevantPeople = i
-                    }
-                })
-                if (hasChange) {
-                    push(ref(appContext.db, '/users/' + userContext.user.uid + '/dialogs/'), {
-                        name: filterUsers[orderRelevantPeople].name,
-                        surname: filterUsers[orderRelevantPeople].surname,
-                        imageUrl: filterUsers[orderRelevantPeople].imageUrl,
-                        uid: filterUsers[orderRelevantPeople].uid
-                    });
-                    history.push('/messenger/dialog/' + filterUsers[0].uid)
-                } else {
-
-                }
-            })
+        if (!userContext) return;
+        searchCompanionDB(Object.values(userContext.user.dialogs).map(dialog => dialog.userUid),
+            userContext.user,
+            (uid) => history.push('/messenger/dialog/' + uid)
+        )
     }
 
-    if (!userContext || !appContext || loading) return null;
+    if (!userContext || loading) return null;
     return (
         <div className="messenger_page page">
             <div className="header ai_c">
@@ -117,13 +58,13 @@ export function Messenger() {
                     </div>
                     <div className="little_yellow_btn jc_c">+ встреча</div>
                 </div>
-                {chats && Object.values(chats).map(chat => (
-                    <div className="chat ai_c" onClick={() => history.push('/messenger/chat/' + chat.uid)}>
+                {userContext.user.chats && Object.values(userContext.user.chats).map((chat, i) => (
+                    <div key={i} className="chat ai_c" onClick={() => history.push('/messenger/chat/' + chat.uid)}>
                         <img src={chat.imageUrl} alt="" className="chat_img"/>
                         <div className="chat_info">
                             <div className="chat_top_line w100per jc_sb">
                                 <p className="chat_name">{chat.name}</p>
-                                <p className=" chat_time min_text ">{messages[chat.uid] && new Date(messages[chat.uid][0].dateSend).toLocaleTimeString()}</p>
+                                <p className=" chat_time min_text ">{messages[chat.uid] && dayjs(messages[chat.uid][0].dateSend).format("hh:mm")}</p>
                             </div>
                             <p className="chat_message w100per">
                                 {messages && messages[chat.uid]
@@ -134,8 +75,8 @@ export function Messenger() {
                         </div>
                     </div>
                 ))}
-                {userContext.user.dialogs && Object.values(userContext.user.dialogs).map(dialog => (
-                    <div className="chat ai_c" onClick={() => history.push('/messenger/dialog/' + dialog.uid)}>
+                {userContext.user.dialogs && Object.values(userContext.user.dialogs).map((dialog, i) => (
+                    <div key={i} className="chat ai_c" onClick={() => history.push('/messenger/dialog/' + dialog.uid)}>
                         <img src={dialog.imageUrl} alt="" className="chat_img"/>
                         <div className="chat_info">
                             <div className="chat_top_line w100per jc_sb">

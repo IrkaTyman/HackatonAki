@@ -12,10 +12,10 @@ export type User={
     activity:number;
     mainInterests:Interest,
     chats:UserChats,
-    dialogs: { [key:string]:{ name: string, surname: string, imageUrl: string, uid: string }}
+    dialogs: UserDialogs
 }
 
-type Interest = {
+export type Interest = {
     [key:string]:{
         priority:number,
         activity:number,
@@ -26,19 +26,35 @@ type UserChats = {
     [key:string]:UserChat
 }
 
+type UserDialogs = {
+    [key:string]:UserDialog
+}
+
 type UserChat = {
     name:string,
     imageUrl:string,
     uid:string
 }
 
+type UserDialog = UserChat & {
+    userUid:string,
+    surname:string,
+    interests:string[]
+}
+
 export type Chat = {
     name:string,
     uid:string,
     imageUrl:string,
-    interest:string,
+    interests:string[],
     members:{name:string,surname:string,uid:string}[]
 }
+export type Dialog = {
+    interests:string[]
+    uid:string,
+    members:{name:string,surname:string,uid:string, imageUrl:string}[]
+}
+
 
 export type Messages = {
     [key:string]:Message[]

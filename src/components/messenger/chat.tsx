@@ -1,14 +1,14 @@
 import React, {useContext, useEffect, useState} from 'react'
-import {AppContext} from "../../context/app-context";
 import {UserContext} from "../../context/user-context";
 import {useParams, useHistory} from "react-router-dom";
-import {get, ref, push, onChildAdded, update} from 'firebase/database'
 import {Chat as ChatType, Message} from "../../types";
 import './style.scss'
 import {Micro, PaperClip, RightArrow, Send} from "../shared/icons";
+import {getMessages as getMessagesDB, getChat} from "../../firebase/get";
+import {listenChat} from "../../firebase/listeners";
+import {sendMessage as sendMessageDB} from "../../firebase/send-message";
 
 export function Chat() {
-    const appContext = useContext(AppContext)
     const userContext = useContext(UserContext)
     const {uid} = useParams<{ uid: string }>();
     const [chat, setChat] = useState<ChatType | null>(null)
@@ -18,53 +18,25 @@ export function Chat() {
     const history = useHistory()
 
     useEffect(() => {
-        if (!appContext) return;
-        getMessages()
-        onChildAdded(ref(appContext.db, '/messages/' + uid), (data) => {
-            getMessages()
+        getMessagesDB(uid, setMessages)
+        listenChat(uid, () => getMessagesDB(uid, setMessages))
+
+        getChat(uid, (chat) => {
+            setChat(chat)
+            setLoading(false)
         })
-        get(ref(appContext.db, '/chats/' + uid))
-            .then(snap => {
-                setChat(snap.val())
-                setLoading(false)
-            })
     }, [])
 
-    function getMessages() {
-        if (!appContext) return;
-        get(ref(appContext.db, '/messages/' + uid))
-            .then(snap => {
-                const messages = snap.val()
-                if (messages) {
-                    setMessages(Object.keys(messages).map(uid => messages[uid]))
-                }
-            })
-    }
 
     function sendMessage(e: React.KeyboardEvent) {
-        if (!appContext || !userContext || e.key != "Enter" || !chat) return;
+        if (!userContext || e.key != "Enter" || !chat) return;
         if (text.trim().length > 0) {
-            push(ref(appContext.db, '/messages/' + uid), {
-                dateSend: Date.now(),
-                isEdit: false,
-                senderName: userContext.user.name,
-                senderSurname: userContext.user.surname,
-                text: text,
-                senderUID: userContext.user.uid,
-                senderImageUrl: userContext.user.imageUrl
-            })
-
-            if (Object.keys(userContext.user.interests).includes(chat.interest)) {
-                const updates: { [key: string]: number } = {};
-                updates['/users/' + userContext.user.uid + '/interests/' + chat.interest + "/activity"] = userContext.user.interests[chat.interest].activity + userContext.user.interests[chat.interest].priority;
-                update(ref(appContext.db), updates);
-
-            }
+            sendMessageDB(text, uid, userContext.user, chat)
             setText("")
         }
     }
 
-    if (loading || !appContext || !chat || !userContext) return null;
+    if (loading || !chat || !userContext) return null;
     return (
         <div className="chat_page h100per">
             <div className="header_chat w100per ">
@@ -85,8 +57,8 @@ export function Chat() {
                         <p className="text">А скинешь схему зайчика с ушками?</p>
                         <p className="date_send">10:30</p>
                     </div>
-                    {messages.map(message => (
-                        <div className={"message " + (message.senderUID != userContext.user.uid ? "left" : "")}>
+                    {messages.map((message, i) => (
+                        <div key={i} className={"message " + (message.senderUID != userContext.user.uid ? "left" : "")}>
                             {message.senderUID != userContext.user.uid &&
                                 <p className="name_sender weight700">{message.senderName}</p>}
                             {message.senderUID != userContext.user.uid &&

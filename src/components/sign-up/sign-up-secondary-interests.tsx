@@ -1,17 +1,15 @@
 import React, {useContext, useState, useEffect} from 'react';
 import {CheckedList} from "../shared/checked-list";
 import {UserContext} from "../../context/user-context";
-import DropdownTreeSelect, {TreeData, TreeNode} from "react-dropdown-tree-select";
+import DropdownTreeSelect, {TreeNode} from "react-dropdown-tree-select";
 import {InputEmpty} from "../shared/input-empty";
 import {useHistory} from "react-router-dom";
-import {set, ref, get} from 'firebase/database'
-import {AppContext} from "../../context/app-context";
+import {getSecondaryInterests} from "../../firebase/get";
 
 type InterestsKey = 'sport' | 'science' | 'technology' | 'business' | 'art'
 
 export function SignUpSecondaryInterests() {
     const userContext = useContext(UserContext);
-    const appContext = useContext(AppContext)
     let [interests, setInterests] = useState<{ [key: string]: { base: string[], other: string[], his: string } }>({
         sport: {base: [], other: [], his: ""},
         science: {base: [], other: [], his: ""},
@@ -62,14 +60,10 @@ export function SignUpSecondaryInterests() {
     }, [])
 
     function getDefaultOther(key: InterestsKey) {
-        if (!appContext) return;
-        get(ref(appContext.db, '/Interests/' + key))
-            .then(snap => {
-                if (snap.val()) {
-                    defaultQuestions[key].other = (snap.val() as string[]).map(value => ({value, label: value}))
-                    setDefault({...defaultQuestions})
-                }
-            })
+        getSecondaryInterests(key, (interests) => {
+            defaultQuestions[key].other = interests
+            setDefault({...defaultQuestions})
+        })
     }
 
     const keyOfMainInterests: InterestsKey[] = ['sport', 'science', 'technology', 'business', 'art']
@@ -126,10 +120,10 @@ export function SignUpSecondaryInterests() {
             <p className="background-text">
                 Пройди небольшую анкету о своих интересах и найди новые знакомства!
             </p>
-            {keyOfMainInterests.map(item => {
+            {keyOfMainInterests.map((item, i) => {
                 if (!checkAvailabilityMainInterests(defaultQuestions[item].name)) return null;
                 return (
-                    <div className="interest_block">
+                    <div key={i} className="interest_block">
                         <p className="weight700">{defaultQuestions[item].name}</p>
                         <CheckedList items={defaultQuestions[item].items}
                                      checkedItems={interests[item].base}

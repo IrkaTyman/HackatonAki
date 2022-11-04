@@ -1,72 +1,48 @@
 import React, {useContext, useEffect, useState} from 'react'
-import {AppContext} from "../../context/app-context";
 import {UserContext} from "../../context/user-context";
 import {useParams, useHistory} from "react-router-dom";
-import {get, ref, push, onChildAdded, update} from 'firebase/database'
 import {Chat as ChatType, Message, User} from "../../types";
 import './style.scss'
 import {Micro, PaperClip, RightArrow, Send} from "../shared/icons";
+import {getChat, getMessages as getMessagesDB, getUser} from "../../firebase/get";
+import {listenChat} from "../../firebase/listeners";
+import {sendMessage as sendMessageDB} from "../../firebase/send-message";
 
 export function Dialog() {
-    const appContext = useContext(AppContext)
     const userContext = useContext(UserContext)
     const {uid} = useParams<{ uid: string }>();
     const [companion, setCompanion] = useState<User | null>(null)
     const [messages, setMessages] = useState<Message[]>([])
     const [loading, setLoading] = useState(true)
     const [text, setText] = useState("")
+    const [chat, setChat] = useState<ChatType | null>(null)
     const history = useHistory()
 
     useEffect(() => {
-        if (!appContext || !userContext) return;
-        getMessages()
-        onChildAdded(ref(appContext.db, '/messages/' +  userContext.user.uid + '/' + uid), (data) => {
-            getMessages()
+        if (!userContext) return;
+        getMessagesDB(uid, setMessages)
+        listenChat(uid, () => getMessagesDB(uid, setMessages))
+
+        getChat(uid, (chat) => {
+            setChat(chat)
+            setLoading(false)
         })
-        get(ref(appContext.db, '/users/' + uid))
-            .then(snap => {
-                if (snap.val()) setCompanion(snap.val())
-                setLoading(false)
-            })
+
+        getUser(userContext.user.dialogs[uid].userUid, (user) => {
+            setCompanion(user)
+            setLoading(false)
+        })
     }, [])
 
-    function getMessages() {
-        if (!appContext || !userContext) return;
-        get(ref(appContext.db, '/messages/' + userContext.user.uid + '/' + uid))
-            .then(snap => {
-                const messages = snap.val()
-                if (messages) {
-                    setMessages(Object.keys(messages).map(uid => messages[uid]))
-                }
-            })
-    }
-
     function sendMessage(e: React.KeyboardEvent) {
-        if (!appContext || !userContext || e.key != "Enter" || !companion) return;
+        if (!userContext || e.key != "Enter" || !companion || !chat) return;
         if (text.trim().length > 0) {
-            push(ref(appContext.db, '/messages/' + userContext.user.uid + '/' + uid), {
-                dateSend: Date.now(),
-                isEdit: false,
-                senderName: userContext.user.name,
-                senderSurname: userContext.user.surname,
-                text: text,
-                senderUID: userContext.user.uid,
-                senderImageUrl: userContext.user.imageUrl
-            })
-
-            const companionInterests = Object.keys(companion.interests)
-            const updates: { [key: string]: number } = {};
-            Object.keys(userContext.user.interests).forEach(interest => {
-                if (companionInterests.includes(interest)) {
-                    updates['/users/' + userContext.user.uid + '/interests'] = userContext.user.interests[interest].activity + userContext.user.interests[interest].priority;
-                }
-            })
-            update(ref(appContext.db), updates);
+            sendMessageDB(text, uid, userContext.user, chat)
             setText("")
         }
     }
 
-    if (loading || !appContext || !companion || !userContext) return null;
+    if (loading || !companion || !userContext) return null;
     return (
         <div className="chat_page h100per">
             <div className="header_chat w100per ">
@@ -79,8 +55,8 @@ export function Dialog() {
 
             <div className="messages-wrapper w100per">
                 <div className="messages_scroll fd_c">
-                    {messages.map(message => (
-                        <div className={"message " + (message.senderUID != userContext.user.uid ? "left" : "")}>
+                    {messages.map((message, i) => (
+                        <div key={i} className={"message " + (message.senderUID != userContext.user.uid ? "left" : "")}>
                             {message.senderUID != userContext.user.uid &&
                                 <p className="name_sender weight700">{message.senderName}</p>}
                             {message.senderUID != userContext.user.uid &&
