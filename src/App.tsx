@@ -18,7 +18,6 @@ import {Home} from "./components/home/home";
 import {SignIn} from "./components/sign-in/sign-in";
 import {Messenger} from "./components/messenger/messenger";
 import {Chat} from "./components/messenger/chat";
-import {Dialog} from "./components/messenger/dialog";
 import {listenValue, removeListenerValue} from "./firebase/listeners";
 import {getUser} from "./firebase/get";
 
@@ -85,7 +84,7 @@ function App() {
                                 <Chat/>
                             </Route>
                             <Route path="/messenger/dialog/:uid">
-                                <Dialog/>
+                                <Chat isDialog={true}/>
                             </Route>
                             <Route path="/messenger">
                                 <Messenger/>

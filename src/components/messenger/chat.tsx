@@ -1,64 +1,72 @@
 import React, {useContext, useEffect, useState} from 'react'
 import {UserContext} from "../../context/user-context";
 import {useParams, useHistory} from "react-router-dom";
-import {Chat as ChatType, Message} from "../../types";
+import {Chat as ChatType, Message, User} from "../../types";
 import './style.scss'
 import {Micro, PaperClip, RightArrow, Send} from "../shared/icons";
-import {getMessages as getMessagesDB, getChat} from "../../firebase/get";
-import {listenChat} from "../../firebase/listeners";
+import {getChat, getMessages as getMessagesDB, getUser} from "../../firebase/get";
+import {listenChat, removeListenerValue} from "../../firebase/listeners";
 import {sendMessage as sendMessageDB} from "../../firebase/send-message";
 import {useCustomizedDayjs} from "../../hooks/useCustomizedDayjs";
 
-export function Chat() {
+type Props = { isDialog?: boolean }
+
+export function Chat({isDialog = false}: Props) {
     const userContext = useContext(UserContext)
     const {uid} = useParams<{ uid: string }>();
-    const [chat, setChat] = useState<ChatType | null>(null)
+    const [companion, setCompanion] = useState<User | null>(null)
     const [messages, setMessages] = useState<Message[]>([])
     const [loading, setLoading] = useState(true)
     const [text, setText] = useState("")
+    const [chat, setChat] = useState<ChatType | null>(null)
     const history = useHistory()
     const dayjs = useCustomizedDayjs()
 
     useEffect(() => {
+        if (!userContext) return;
         getMessagesDB(uid, setMessages)
         listenChat(uid, () => getMessagesDB(uid, setMessages))
 
         getChat(uid, (chat) => {
             setChat(chat)
             setLoading(false)
+        }, isDialog ? '/dialogs/' : '/chats/')
+
+        isDialog && getUser(userContext.user.dialogs[uid].userUid, (user) => {
+            setCompanion(user)
+            setLoading(false)
         })
+
+        return () => removeListenerValue('/chats/' + uid)
     }, [])
 
-
     function sendMessage(e: React.KeyboardEvent) {
-        if (!userContext || e.key != "Enter" || !chat) return;
+        if (!userContext || e.key != "Enter" || !companion && isDialog || !chat) return;
         if (text.trim().length > 0) {
             sendMessageDB(text, uid, userContext.user, chat)
             setText("")
         }
     }
 
-    if (loading || !chat || !userContext) return null;
+    function getChatImg() {
+        if (isDialog && companion) return companion.imageUrl || ""
+        else if (chat) return chat.imageUrl
+        return ""
+    }
+
+    if (loading || !companion && isDialog || !chat || !userContext) return null;
     return (
         <div className="chat_page h100per">
             <div className="header_chat w100per ">
                 <RightArrow className="comeback" onClick={() => history.goBack()}/>
                 <div className="chat_info fd_c ai_c">
-                    <p className="chat_name">{chat.name}</p>
-                    <p className="chat_count">Участников: {Object.keys(chat.members).length}</p>
+                    <p className="chat_name">{isDialog && companion ? companion.name : chat.name}</p>
                 </div>
-                <img className="chat_img" alt="" src={chat.imageUrl}/>
+                <img className="chat_img" alt="" src={getChatImg()}/>
             </div>
 
             <div className="messages-wrapper w100per">
                 <div className="messages_scroll fd_c">
-                    <div className={"message left"}>
-                        <div
-                            style={{backgroundImage: 'url("https://shutniks.com/wp-content/uploads/2020/01/6f3947d9d83877d-700x393.jpg")'}}
-                            className="img_user"/>
-                        <p className="text">А скинешь схему зайчика с ушками?</p>
-                        <p className="date_send">10:30</p>
-                    </div>
                     {messages.map((message, i) => (
                         <div key={i} className={"message " + (message.senderUID != userContext.user.uid ? "left" : "")}>
                             {message.senderUID != userContext.user.uid &&

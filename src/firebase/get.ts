@@ -28,7 +28,7 @@ export function getChats(interests: string[], setChats: (chats: Chats) => void) 
 }
 
 export function getChat(uid: string, setChats: (chat: any, uid: string) => void, url:string="/chats/") {
-    get(ref(db, (url || '/chats/') + uid))
+    get(ref(db, url + uid))
         .then(snap => snap.val() && setChats(snap.val(), uid))
         .catch(error => console.log(error))
 }
