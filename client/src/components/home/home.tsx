@@ -3,8 +3,9 @@ import {UserContext} from "../../context/user-context";
 import '../style.scss'
 import './style.scss'
 import {NavLink} from "react-router-dom";
-import {Chat, Grid, Home as HomeIcon} from "../shared/icons";
+import {Chat, Grid, Home as HomeIcon} from "../shared/data-display/icons";
 import {getUser} from "../../firebase/get";
+import {Footer} from "../shared/page-component/footer";
 
 export function Home() {
     const userContext = useContext(UserContext)
@@ -54,20 +55,7 @@ export function Home() {
                 <div className="chats"></div>
             </div>
 
-            <div className="footer w100per">
-                <NavLink to={'/home'} className="link jc_c fd_c ai_c active">
-                    <HomeIcon width={20} height={20}/>
-                    <p className="link_text">Главная</p>
-                </NavLink>
-                <div className="link jc_c fd_c ai_c">
-                    <Chat width={18} height={18}/>
-                    <NavLink to={'/messenger'} className="link_text">Мессенджер</NavLink>
-                </div>
-                <div className="link jc_c fd_c ai_c">
-                    <Grid width={20} height={20}/>
-                    <NavLink to={'/chats'} className="link_text">Все чаты</NavLink>
-                </div>
-            </div>
+            <Footer/>
         </div>
     )
 }

@@ -3,7 +3,7 @@ import {UserContext} from "../../context/user-context";
 import {useParams, useHistory} from "react-router-dom";
 import {Chat as ChatType, Message, User} from "../../types";
 import './style.scss'
-import {Micro, PaperClip, RightArrow, Send} from "../shared/icons";
+import {Micro, PaperClip, RightArrow, Send} from "../shared/data-display/icons";
 import {getChat, getMessages as getMessagesDB, getUser} from "../../firebase/get";
 import {listenChat, removeListenerValue} from "../../firebase/listeners";
 import {sendMessage as sendMessageDB} from "../../firebase/send-message";
@@ -40,8 +40,8 @@ export function Chat({isDialog = false}: Props) {
         return () => removeListenerValue('/chats/' + uid)
     }, [])
 
-    function sendMessage(e: React.KeyboardEvent) {
-        if (!userContext || e.key != "Enter" || !companion && isDialog || !chat) return;
+    function sendMessage(e?: React.KeyboardEvent) {
+        if (!userContext || e && e.key != "Enter" || !companion && isDialog || !chat) return;
         if (text.trim().length > 0) {
             sendMessageDB(text, uid, userContext.user, chat)
             setText("")
@@ -93,7 +93,7 @@ export function Chat({isDialog = false}: Props) {
                     ? <div className="send_voice ai_c jc_c">
                         <Micro fill={"#fff"} width={18} height={18}/>
                     </div>
-                    : <div className="add_file ai_c jc_c">
+                    : <div className="add_file ai_c jc_c" onClick={() => sendMessage()}>
                         <Send width={20} height={20}/>
                     </div>
                 }

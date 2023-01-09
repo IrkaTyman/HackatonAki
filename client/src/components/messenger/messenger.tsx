@@ -1,40 +1,52 @@
 import React, {useContext, useState, useEffect} from 'react';
 import {UserContext} from "../../context/user-context";
 import {NavLink, useHistory} from "react-router-dom";
-import {Chats, Dialogs, Message, Messages} from "../../types";
+import {Chats, Dialogs, Message, Messages, UserChat} from "../../types";
 import './style.scss'
-import {Chat, Grid, Home as HomeIcon, Search} from "../shared/icons";
-import {getLastMessage as getLastMessageDB} from "../../firebase/get";
+import {Chat, Grid, Home as HomeIcon, Search} from "../shared/data-display/icons";
+import {getLastMessage as getLastMessageDB, getUser} from "../../firebase/get";
 import {searchCompanionDB} from "../../firebase/search-companion";
 import {useCustomizedDayjs} from "../../hooks/useCustomizedDayjs";
 import {listenChat} from "../../firebase/listeners";
+import {Footer} from "../shared/page-component/footer";
 
 export function Messenger() {
     const userContext = useContext(UserContext)
     const [messages, setMessages] = useState<Messages>({})
+    const [chats, setChats] = useState<UserChat[] | null>(null)
+    const [dialogs, setDialogs] = useState<UserChat[] | null>(null)
     const [loading, setLoading] = useState(true)
     const dayjs = useCustomizedDayjs()
     const history = useHistory()
+    const [search, setSearch] = useState("")
 
     useEffect(() => {
         if (!userContext) return;
 
-        function setMessage(message:Message[], uid:string){
-            setMessages((messages) => ({...messages, [uid]:message}))
+        function setMessage(message: Message[], uid: string) {
+            setMessages((messages) => ({...messages, [uid]: message}))
         }
 
-        function getLastMessage(chats:any){
+        function getLastMessage(chats: any) {
             Object.keys(chats).map(uid => {
-                getLastMessageDB(uid, (message) => setMessage(message,uid))
-                listenChat(uid,() =>  getLastMessageDB(uid, (message) => setMessage(message,uid)))
+                getLastMessageDB(uid, (message) => setMessage(message, uid))
+                listenChat(uid, () => getLastMessageDB(uid, (message) => setMessage(message, uid)))
             })
         }
 
-        getLastMessage(userContext.user.chats)
-        getLastMessage(userContext.user.dialogs)
+        userContext.user.chats && getLastMessage(userContext.user.chats)
+        userContext.user.dialogs && getLastMessage(userContext.user.dialogs)
+
+        getAllChats()
 
         setLoading(false)
     }, [])
+
+    function getAllChats(){
+        if(!userContext) return;
+        setDialogs(Object.values(userContext.user.dialogs))
+        setChats(Object.values(userContext.user.chats) );
+    }
 
     function searchCompanion() {
         if (!userContext) return;
@@ -42,11 +54,13 @@ export function Messenger() {
             ? Object.values(userContext.user.dialogs).map(dialog => dialog.userUid)
             : [];
         searchCompanionDB(dialogUIDs, userContext.user,
-            (uid) => history.push('/messenger/dialog/' + uid)
-        )
+            (uid) => {
+                getUser(userContext.user.uid, userContext.setUser)
+                history.push('/messenger/dialog/' + uid)
+            })
     }
 
-    if (!userContext || loading) return null;
+    if (!userContext || loading || !chats || !dialogs) return null;
     return (
         <div className="messenger_page page">
             <div className="header ai_c">
@@ -57,7 +71,7 @@ export function Messenger() {
             <div className="messenger">
                 <div className="search_container">
                     <Search width={15} height={15}/>
-                    <input type="text" placeholder="Поиск"/>
+                    <input type="text" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)}/>
                 </div>
                 <div className="buttons jc_sb ai_c w100per">
                     <div className="little_yellow_btn jc_c">+ чат</div>
@@ -67,7 +81,7 @@ export function Messenger() {
                     </div>
                     <div className="little_yellow_btn jc_c">+ встреча</div>
                 </div>
-                {userContext.user.chats && Object.values(userContext.user.chats).map((chat, i) => (
+                {chats.map((chat, i) => (
                     <div key={i} className="chat ai_c" onClick={() => history.push('/messenger/chat/' + chat.uid)}>
                         <img src={chat.imageUrl} alt="" className="chat_img"/>
                         <div className="chat_info">
@@ -84,7 +98,7 @@ export function Messenger() {
                         </div>
                     </div>
                 ))}
-                {userContext.user.dialogs && Object.values(userContext.user.dialogs).map((dialog, i) => (
+                {dialogs.map((dialog, i) => (
                     <div key={i} className="chat ai_c" onClick={() => history.push('/messenger/dialog/' + dialog.uid)}>
                         <img src={dialog.imageUrl} alt="" className="chat_img"/>
                         <div className="chat_info">
@@ -104,21 +118,7 @@ export function Messenger() {
                 ))}
             </div>
 
-
-            <div className="footer w100per">
-                <div className="link jc_c fd_c ai_c ">
-                    <HomeIcon width={20} height={20}/>
-                    <NavLink to={'/home'} className="link_text">Главная</NavLink>
-                </div>
-                <div className="link jc_c fd_c ai_c active">
-                    <Chat width={18} height={18}/>
-                    <NavLink to={'/messenger'} className="link_text">Мессенджер</NavLink>
-                </div>
-                <div className="link jc_c fd_c ai_c">
-                    <Grid width={20} height={20}/>
-                    <NavLink to={'/chats'} className="link_text">Все чаты</NavLink>
-                </div>
-            </div>
+            <Footer/>
         </div>
     )
 }

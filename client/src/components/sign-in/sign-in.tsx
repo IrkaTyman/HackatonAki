@@ -1,6 +1,6 @@
 import React, {useContext, useState} from 'react';
 import {UserContext} from "../../context/user-context";
-import {InputEmpty} from "../shared/input-empty";
+import {InputEmpty} from "../shared/inputs/input-empty";
 import './style.scss'
 import {Link, useHistory} from "react-router-dom";
 import {useForm} from "../../hooks/useForm";

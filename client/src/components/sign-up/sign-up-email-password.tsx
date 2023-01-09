@@ -1,6 +1,6 @@
 import React, {useContext} from 'react'
 import {UserContext} from "../../context/user-context";
-import {InputEmpty} from "../shared/input-empty";
+import {InputEmpty} from "../shared/inputs/input-empty";
 import {useHistory} from "react-router-dom";
 import cat3 from '../../image/cat3.png';
 import {useForm} from "../../hooks/useForm";

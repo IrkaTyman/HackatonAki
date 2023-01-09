@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
-import grey_eye from '../../image/eye-grey.png'
-import yellow_eye from '../../image/eye-yellow.png'
+import grey_eye from '../../../image/eye-grey.png'
+import yellow_eye from '../../../image/eye-yellow.png'
 
 type Props<Key> = {
     value: string | null,

@@ -58,7 +58,7 @@ export function searchCompanionDB(dialogsUid: string[], user: User, goChat: (use
                 ],
                 uid: dialogRef.key
             })
-            goChat(filterUsers[0].uid)
+            goChat(dialogRef.key||"")
 
         })
 }

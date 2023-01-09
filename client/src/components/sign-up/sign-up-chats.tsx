@@ -1,9 +1,9 @@
 import React, {useContext, useState, useEffect} from 'react'
 import {UserContext} from "../../context/user-context";
 import {Chats} from "../../types";
-import {CheckBox} from "../shared/check-box";
+import {CheckBox} from "../shared/inputs/check-box";
 import {useHistory} from "react-router-dom";
-import cat4 from '../../image/cat4.png'
+//import cat4 from '../../image/cat4.png'
 import {getChats} from "../../firebase/get";
 import {setUser, setMember} from "../../firebase/set";
 
@@ -60,7 +60,7 @@ export function SignUpChats() {
             <p className="background-text">
                 Выбери чаты, которые тебе интересны. Позже ты сможешь вступить в другие
             </p>
-            <img src={cat4} alt="" className="cat"/>
+            <img src="../../image/cat4.png" alt="" className="cat"/>
             <p className="weight700">Чаты для тебя</p>
             {Object.keys(chats).map((uidChat, i) => (
                 <div key={i} className="chat_container ai_c w100per">

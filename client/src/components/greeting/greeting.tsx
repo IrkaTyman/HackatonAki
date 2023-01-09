@@ -3,7 +3,7 @@ import {UserContext} from "../../context/user-context";
 import {Link, useHistory} from 'react-router-dom';
 import './style.scss'
 import {signInGoogle} from "../../firebase/sign";
-import google from '../../image/google.png'
+//import google from '../../image/google.png'
 import {User} from "../../types";
 
 export default function Greeting() {
@@ -33,7 +33,7 @@ export default function Greeting() {
             <div className="greating_buttons ai_c fd_c ">
                 <Link to="/sign-up/name" className="greating_sing_on big_yellow_btn jc_c ai_c">Начать общаться</Link>
                 <Link to="/sign-in" className="grey_a sign_in">Зарегистрированы? Войти</Link>
-                <img className="google" src={google} onClick={() => signInGoogle(signUp,signIn)}/>
+                <img className="google" src="../../image/google.png" onClick={() => signInGoogle(signUp,signIn)}/>
             </div>
         </div>
     )

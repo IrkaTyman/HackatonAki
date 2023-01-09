@@ -1,8 +1,8 @@
 import React, {useContext, useState, useEffect} from 'react';
-import {CheckedList} from "../shared/checked-list";
+import {CheckedList} from "../shared/inputs/checked-list";
 import {UserContext} from "../../context/user-context";
 import DropdownTreeSelect, {TreeNode} from "react-dropdown-tree-select";
-import {InputEmpty} from "../shared/input-empty";
+import {InputEmpty} from "../shared/inputs/input-empty";
 import {useHistory} from "react-router-dom";
 import {getSecondaryInterests} from "../../firebase/get";
 

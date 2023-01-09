@@ -3,7 +3,7 @@ import './style.scss';
 import cat1 from '../../image/cat1.png';
 import {Link, useHistory} from "react-router-dom";
 import {UserContext} from "../../context/user-context";
-import {InputEmpty} from "../shared/input-empty";
+import {InputEmpty} from "../shared/inputs/input-empty";
 import {User} from "../../types";
 
 export function SingUpName() {

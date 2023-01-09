@@ -2,8 +2,8 @@ import React, {useContext, useState, useEffect} from "react";
 import {UserContext} from "../../context/user-context";
 import DropdownTreeSelect from 'react-dropdown-tree-select'
 import {User} from "../../types";
-import {InputEmpty} from "../shared/input-empty";
-import {CheckedList} from "../shared/checked-list";
+import {InputEmpty} from "../shared/inputs/input-empty";
+import {CheckedList} from "../shared/inputs/checked-list";
 import {useHistory} from "react-router-dom";
 
 export function SignUpMainInterests() {

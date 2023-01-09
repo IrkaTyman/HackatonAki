@@ -30,13 +30,13 @@ type UserDialogs = {
     [key:string]:UserDialog
 }
 
-type UserChat = {
+export type UserChat = {
     name:string,
     imageUrl:string,
     uid:string
 }
 
-type UserDialog = UserChat & {
+export type UserDialog = UserChat & {
     userUid:string,
     surname:string,
     interests:string[]
