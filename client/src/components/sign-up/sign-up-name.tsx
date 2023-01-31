@@ -1,15 +1,13 @@
-import React, {useState, useContext} from 'react';
+import React, {useState} from 'react';
 import './style.scss';
-import cat1 from '../../image/cat1.png';
-import {Link, useHistory} from "react-router-dom";
-import {UserContext} from "../../context/user-context";
+import {useHistory} from "react-router-dom";
 import {InputEmpty} from "../shared/inputs/input-empty";
 import {User} from "../../types";
 
-export function SingUpName() {
-    const userContext = useContext(UserContext)
+const cat1 = require('../../image/cat1.png');
 
-    const [user, setUser] = useState<User | null>(userContext && userContext.user || null)
+export function SingUpName() {
+    const [user, setUser] = useState<User>(createUser())
     const [error, setError] = useState({
         name: false,
         surname: false,
@@ -17,7 +15,6 @@ export function SingUpName() {
     const history = useHistory();
 
     function change(key: "name" | "surname", value: string | null) {
-        if (!user) return;
         if (!value != error[key]) {
             error[key] = !value;
             setError(error)
@@ -26,16 +23,33 @@ export function SingUpName() {
         setUser({...user});
     }
 
+    function createUser():User{
+        return {
+            name: null,
+            activity: 50,
+            surname: null,
+            location: null,
+            interests: {},
+            password: null,
+            imageUrl: null,
+            email: null,
+            birth: null,
+            firstEntry: true,
+            mainInterests: {},
+            uid: "",
+            chats: {},
+            dialogs: {}
+        }
+    }
+
     function submitName() {
-        if (!userContext || !user) return;
         if (!user.name || !user.surname) {
             setError({
                 name: !user.name,
                 surname: !user.surname
             })
         } else {
-            userContext.setUser({...user});
-            history.push("/sign-up/email-password")
+            history.push("/sign-up/email-password", {user})
         }
     }
 

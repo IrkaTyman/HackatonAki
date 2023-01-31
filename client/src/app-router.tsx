@@ -14,49 +14,65 @@ import {Chat} from "./components/messenger/chat";
 import {Messenger} from "./components/messenger/messenger";
 import {CatalogChats} from "./components/catalog-chats";
 import Greeting from "./components/greeting/greeting";
+import {User} from "./types";
+import {ProtectedRoute} from "./router/protected-route";
 
-export function AppRouter(){
-    return(
+export function AppRouter({user}: { user: User | null }) {
+    return (
         <Switch>
             <Route path="/sign-up/name">
                 <SingUpName/>
             </Route>
-            <Route path="/sign-up/photo">
-                <SignUpPhoto/>
-            </Route>
             <Route path="/sign-up/email-password">
                 <SignUpEmailPassword/>
             </Route>
-            <Route path="/sign-up/main-interests">
-                <SignUpMainInterests/>
-            </Route>
-            <Route path="/sign-up/secondary-interests">
-                <SignUpSecondaryInterests/>
-            </Route>
-            <Route path="/sign-up/repetition-interests">
-                <SignUpRepetitionInterests/>
-            </Route>
-            <Route path="/sign-up/chats">
-                <SignUpChats/>
-            </Route>
+            <ProtectedRoute path="/sign-up/photo"
+                            component={<SignUpPhoto/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
+            <ProtectedRoute path="/sign-up/main-interests"
+                            component={<SignUpMainInterests/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
+            <ProtectedRoute path="/sign-up/secondary-interests"
+                            component={<SignUpSecondaryInterests/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
+            <ProtectedRoute path="/sign-up/repetition-interests"
+                            component={<SignUpRepetitionInterests/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
+            <ProtectedRoute path="/sign-up/chats"
+                            component={<SignUpChats/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
+            <ProtectedRoute path="/sign-up/chats"
+                            component={<SignUpRepetitionInterests/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
             <Route path="/sign-in">
                 <SignIn/>
             </Route>
-            <Route path="/home">
-                <Home/>
-            </Route>
-            <Route path="/messenger/chat/:uid">
-                <Chat/>
-            </Route>
-            <Route path="/messenger/dialog/:uid">
-                <Chat isDialog={true}/>
-            </Route>
-            <Route path="/messenger">
-                <Messenger/>
-            </Route>
-            <Route path="/catalog-chats">
-                <CatalogChats/>
-            </Route>
+            <ProtectedRoute path="/home"
+                            component={<Home/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
+            <ProtectedRoute path="/messenger/chat/:uid"
+                            component={<Chat/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
+            <ProtectedRoute path="/messenger/dialog/:uid"
+                            component={<Chat isDialog={true}/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
+            <ProtectedRoute path="/messenger"
+                            component={<Messenger/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
+            <ProtectedRoute path="/catalog-chats"
+                            component={<CatalogChats/>}
+                            redirectPath={"/"}
+                            isRedirect={user === null}/>
             <Route path="/">
                 <Greeting/>
             </Route>

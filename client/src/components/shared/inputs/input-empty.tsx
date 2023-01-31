@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
-import grey_eye from '../../../image/eye-grey.png'
-import yellow_eye from '../../../image/eye-yellow.png'
+
+const grey_eye = require('../../../image/eye-grey.png');
+const yellow_eye = require('../../../image/eye-yellow.png');
 
 type Props<Key> = {
     value: string | null,

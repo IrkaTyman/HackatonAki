@@ -5,7 +5,7 @@ import {Link} from "react-router-dom";
 export function SignUpRepetitionInterests() {
     const userContext = useContext(UserContext);
 
-    if (!userContext) return null;
+    if (!userContext || !userContext.user) return null;
     return (
         <div className="sign_up_repetition_interests_page page">
             <p className="big-header">Еще немного</p>

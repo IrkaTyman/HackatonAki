@@ -4,10 +4,10 @@ import {useParams, useHistory} from "react-router-dom";
 import {Chat as ChatType, Message, User} from "../../types";
 import './style.scss'
 import {Micro, PaperClip, RightArrow, Send} from "../shared/data-display/icons";
-import {getChat, getMessages as getMessagesDB, getUser} from "../../firebase/get";
 import {listenChat, removeListenerValue} from "../../firebase/listeners";
-import {sendMessage as sendMessageDB} from "../../firebase/send-message";
 import {useCustomizedDayjs} from "../../hooks/useCustomizedDayjs";
+import {getChat, postMessage, getMessages as getMessagesFetch} from "../../api/chats";
+import {getUser} from "../../api/user";
 
 type Props = { isDialog?: boolean }
 
@@ -24,13 +24,13 @@ export function Chat({isDialog = false}: Props) {
 
     useEffect(() => {
         if (!userContext) return;
-        getMessagesDB(uid, setMessages)
-        listenChat(uid, () => getMessagesDB(uid, setMessages))
+        getMessagesFetch(uid, setMessages)
+        listenChat(uid, () => getMessagesFetch(uid, setMessages))
 
-        getChat(uid, (chat) => {
+        getChat(uid, !isDialog, (chat) => {
             setChat(chat)
             setLoading(false)
-        }, isDialog ? '/dialogs/' : '/chats/')
+        })
 
         isDialog && getUser(userContext.user.dialogs[uid].userUid, (user) => {
             setCompanion(user)
@@ -43,7 +43,7 @@ export function Chat({isDialog = false}: Props) {
     function sendMessage(e?: React.KeyboardEvent) {
         if (!userContext || e && e.key != "Enter" || !companion && isDialog || !chat) return;
         if (text.trim().length > 0) {
-            sendMessageDB(text, uid, userContext.user, chat)
+            postMessage(text, userContext.user, chat)
             setText("")
         }
     }

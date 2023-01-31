@@ -4,17 +4,11 @@ import '../style.scss'
 import './style.scss'
 import {NavLink} from "react-router-dom";
 import {Chat, Grid, Home as HomeIcon} from "../shared/data-display/icons";
-import {getUser} from "../../firebase/get";
 import {Footer} from "../shared/page-component/footer";
 
 export function Home() {
     const userContext = useContext(UserContext)
     const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        if (!userContext) return;
-        getUser(userContext.UID,userContext.setUser);
-    }, [])
 
     if (!userContext) return null;
     return (

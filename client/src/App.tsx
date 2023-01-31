@@ -4,41 +4,26 @@ import {User} from "./types";
 import {UserContext} from './context/user-context'
 import {ToastContainer} from "react-toastify";
 import {listenValue, removeListenerValue} from "./firebase/listeners";
-import {getUser} from "./firebase/get";
+import {getUser} from "./api/user";
 import {AppRouter} from "./app-router";
 
 function App() {
-    const [user, setUser] = useState<User>({
-        name: null,
-        activity: 50,
-        surname: null,
-        location: null,
-        interests: {},
-        password: null,
-        imageUrl: null,
-        email: null,
-        birth: null,
-        firstEntry: true,
-        mainInterests: {},
-        uid: "",
-        chats: {},
-        dialogs: {}
-    })
-    const [UID, setUID] = useState("")
+    const [user, setUser] = useState<User | null>(null)
     const [isOAuth, setIsOAuth] = useState(false)
 
     useEffect(() => {
-        listenValue('/users/' + UID, () => getUser(UID, setUser))
+        if (user === null) return;
+        listenValue('/users/' + user.uid, () => getUser(user.uid, setUser))
 
-        return () => removeListenerValue('/users/' + UID)
-    }, [UID])
+        return () => removeListenerValue('/users/' + user.uid)
+    }, [user])
 
     return (
         <div className="mobile-container w100per jc_c">
             <div className="app h100per">
                 <div className="app_scroll h100per">
-                    <UserContext.Provider value={{user, setUser, isOAuth, setIsOAuth, UID, setUID}}>
-                        <AppRouter/>
+                    <UserContext.Provider value={{user, setUser, isOAuth, setIsOAuth}}>
+                        <AppRouter user={user}/>
                     </UserContext.Provider>
                 </div>
             </div>

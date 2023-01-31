@@ -1,8 +1,30 @@
-import {get, push, ref, set} from "firebase/database";
+import {set, ref, get, push,} from "firebase/database";
+import {auth, db} from "./initialize";
 import {User} from "../types";
-import {db} from "./initialize";
+import {
+    createUserWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithEmailAndPassword,
+    signInWithPopup
+} from "firebase/auth";
+import {Response} from "express";
 
-export function searchCompanionDB(dialogsUid: string[], user: User, goChat: (userUid: string) => void) {
+export function getUser(uid: string, response: Response, setUser?: () => void) {
+    get(ref(db, '/users/' + uid))
+        .then(snap => {
+            if (snap.exists()) response.status(200).json(snap.val())
+            else setUser && setUser()
+        })
+        .catch(err => console.log(err))
+}
+
+export function setUser(user: User, response: Response) {
+    set(ref(db, '/users/' + user.uid), user)
+        .then(() => response.status(200).json(null))
+        .catch(() => response.status(404).json(null))
+}
+
+export function searchCompanionDB(dialogsUid: string[], user: User, response: Response) {
     get(ref(db, '/users'))
         .then(snap => {
             let currUsers: User[] = Object.values(snap.val())
@@ -58,7 +80,29 @@ export function searchCompanionDB(dialogsUid: string[], user: User, goChat: (use
                 ],
                 uid: dialogRef.key
             })
-            goChat(dialogRef.key||"")
 
+            response.status(200).json(dialogRef.key)
         })
+}
+
+export function signInEmail(email: string, password: string, response: Response) {
+    signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            response.status(200).json(user.uid)
+        })
+        .catch((error) => {
+            if (error.code == 'auth/wrong-password' || error.code == "auth/user-not-found")
+                response.status(400).json(null)
+            else
+                response.status(400).json(null)
+        });
+}
+
+export function signUpEmail(email: string, password: string, response: Response) {
+    createUserWithEmailAndPassword(auth, email, password)
+        .then(userCredital => {
+            response.status(200).json(userCredital.user.uid)
+        })
+        .catch(error => response.status(404).json(null))
 }

@@ -4,7 +4,7 @@ import {InputEmpty} from "../shared/inputs/input-empty";
 import './style.scss'
 import {Link, useHistory} from "react-router-dom";
 import {useForm} from "../../hooks/useForm";
-import {signInEmail} from "../../firebase/sign";
+import {signIn} from "../../api/user";
 
 export function SignIn() {
     const {form, errors, changeForm, checkErrors} = useForm(["email", "password"])
@@ -17,12 +17,12 @@ export function SignIn() {
         if (!form.email || !form.password) {
             checkErrors(["email", "password"])
         } else {
-            signInEmail(form.email,
+            signIn(form.email,
                 form.password,
-                (uid) => {
-                    userContext.setUID(uid);
+                (user) => {
+                    userContext.setUser(user);
                     history.push('/home')
-                }, () => setIncorrect(true)
+                }
             )
         }
     }

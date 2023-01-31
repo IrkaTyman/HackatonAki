@@ -3,8 +3,10 @@ import {UserContext} from "../../context/user-context";
 import {Link, useHistory} from 'react-router-dom';
 import './style.scss'
 import {signInGoogle} from "../../firebase/sign";
-//import google from '../../image/google.png'
 import {User} from "../../types";
+import {getUser} from "../../api/user";
+
+const google = require('../../image/google.png');
 
 export default function Greeting() {
     const userContext = useContext(UserContext)
@@ -12,18 +14,13 @@ export default function Greeting() {
 
     function signUp(user: any) {
         if (!userContext) return
-        userContext.user.email = user.email
-        userContext.user.imageUrl = user.photoURL
-        userContext.user.name = user.displayName
-        userContext.user.surname = ""
-        userContext.user.uid = user.uid
-        userContext.setUser({...userContext.user})
+        userContext.setUser(user)
         history.push("/sign-up/main-interests")
     }
 
     function signIn(user: User) {
         if (!userContext) return
-        userContext.setUID(user.uid)
+        getUser(user.uid, userContext.setUser)
         history.push("/home")
     }
 
@@ -33,7 +30,7 @@ export default function Greeting() {
             <div className="greating_buttons ai_c fd_c ">
                 <Link to="/sign-up/name" className="greating_sing_on big_yellow_btn jc_c ai_c">Начать общаться</Link>
                 <Link to="/sign-in" className="grey_a sign_in">Зарегистрированы? Войти</Link>
-                <img className="google" src="../../image/google.png" onClick={() => signInGoogle(signUp,signIn)}/>
+                <img className="google" src={google} onClick={() => signInGoogle(signUp,signIn)}/>
             </div>
         </div>
     )

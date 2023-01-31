@@ -3,9 +3,10 @@ import {UserContext} from "../../context/user-context";
 import {Chats} from "../../types";
 import {CheckBox} from "../shared/inputs/check-box";
 import {useHistory} from "react-router-dom";
-//import cat4 from '../../image/cat4.png'
-import {getChats} from "../../firebase/get";
-import {setUser, setMember} from "../../firebase/set";
+import {getChats, setMember} from "../../api/chats";
+import {setUser} from "../../api/user";
+
+const cat4 = require('../../image/cat4.png');
 
 export function SignUpChats() {
     const userContext = useContext(UserContext)
@@ -15,13 +16,13 @@ export function SignUpChats() {
     const history = useHistory()
 
     useEffect(() => {
-        if (!userContext) return
+        if (!userContext || !userContext.user) return
 
         let allInterests = Object.keys(userContext.user.mainInterests)
             .concat(Object.keys(userContext.user.interests))
         getChats(allInterests, (chats) => {
-            setChats(chats)
             setLoading(false)
+            setChats(chats)
         })
     }, [])
 
@@ -34,11 +35,14 @@ export function SignUpChats() {
     }
 
     function submitChats() {
-        if (!userContext) return;
+        if (!userContext || !userContext.user) return;
 
         if (selected.length > 0) {
             selected.forEach(uid => {
-                setMember(uid, userContext.user)
+                if(!userContext.user) return
+                setMember(uid, userContext.user,
+                    () => {}, () => {}
+                )
 
                 userContext.user.chats[uid] = {
                     name: chats[uid].name,
@@ -47,7 +51,7 @@ export function SignUpChats() {
                 }
             })
         }
-        userContext.setUID(userContext.user.uid)
+
         setUser(userContext.user)
 
         history.push('/home')
@@ -60,7 +64,7 @@ export function SignUpChats() {
             <p className="background-text">
                 Выбери чаты, которые тебе интересны. Позже ты сможешь вступить в другие
             </p>
-            <img src="../../image/cat4.png" alt="" className="cat"/>
+            <img src={cat4} alt="" className="cat"/>
             <p className="weight700">Чаты для тебя</p>
             {Object.keys(chats).map((uidChat, i) => (
                 <div key={i} className="chat_container ai_c w100per">

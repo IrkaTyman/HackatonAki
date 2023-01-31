@@ -8,7 +8,6 @@ import {useHistory} from "react-router-dom";
 
 export function SignUpMainInterests() {
     const userContext = useContext(UserContext);
-    const [user, setUser] = useState<User | null>(userContext && userContext.user)
     let [mainInterests, setMainInterests] = useState<string[]>([])
     let [error, setError] = useState({
         birth: false,
@@ -23,10 +22,10 @@ export function SignUpMainInterests() {
     }, [])
 
     function change(pp: any) {
-        if (!user) return
-        user.location = "Екатеринбург"
-        user.birth = new Date()
-        setUser({...user})
+        if (!userContext || !userContext.user) return
+        userContext.user.location = "Екатеринбург"
+        userContext.user.birth = new Date()
+        userContext.setUser({...userContext.user})
     }
 
     function changeMainInterests(item: string, checked: boolean) {
@@ -37,11 +36,11 @@ export function SignUpMainInterests() {
     }
 
     function submitMainInterests() {
-        if (!user || !userContext) return;
-        if (!user.birth || !user.location || mainInterests.length == 0) {
+        if (!userContext || !userContext.user) return;
+        if (!userContext.user.birth || !userContext.user.location || mainInterests.length == 0) {
             setError({
-                birth: !user.birth,
-                location: !user.location,
+                birth: !userContext.user.birth,
+                location: !userContext.user.location,
                 mainInterests: mainInterests.length == 0
             })
         } else {
@@ -59,7 +58,7 @@ export function SignUpMainInterests() {
         }
     }
 
-    if (!user) return null
+    if (!userContext || !userContext.user) return null
     return (
         <div className="sign-up-main-interests page">
             <p className="big-header">Давай знакомиться</p>

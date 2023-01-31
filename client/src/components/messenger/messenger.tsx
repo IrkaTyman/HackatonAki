@@ -1,14 +1,13 @@
 import React, {useContext, useState, useEffect} from 'react';
 import {UserContext} from "../../context/user-context";
-import {NavLink, useHistory} from "react-router-dom";
-import {Chats, Dialogs, Message, Messages, UserChat} from "../../types";
+import {useHistory} from "react-router-dom";
+import {Message, Messages, UserChat} from "../../types";
 import './style.scss'
-import {Chat, Grid, Home as HomeIcon, Search} from "../shared/data-display/icons";
-import {getLastMessage as getLastMessageDB, getUser} from "../../firebase/get";
-import {searchCompanionDB} from "../../firebase/search-companion";
+import {Search} from "../shared/data-display/icons";
 import {useCustomizedDayjs} from "../../hooks/useCustomizedDayjs";
 import {listenChat} from "../../firebase/listeners";
 import {Footer} from "../shared/page-component/footer";
+import {getLastMessage as getLastMessageFetch, postSearchCompanion} from "../../api/chats";
 
 export function Messenger() {
     const userContext = useContext(UserContext)
@@ -29,8 +28,8 @@ export function Messenger() {
 
         function getLastMessage(chats: any) {
             Object.keys(chats).map(uid => {
-                getLastMessageDB(uid, (message) => setMessage(message, uid))
-                listenChat(uid, () => getLastMessageDB(uid, (message) => setMessage(message, uid)))
+                getLastMessageFetch(uid, (message) => setMessage(message, uid))
+                listenChat(uid, () => getLastMessageFetch(uid, (message) => setMessage(message, uid)))
             })
         }
 
@@ -42,10 +41,10 @@ export function Messenger() {
         setLoading(false)
     }, [])
 
-    function getAllChats(){
-        if(!userContext) return;
+    function getAllChats() {
+        if (!userContext) return;
         setDialogs(Object.values(userContext.user.dialogs))
-        setChats(Object.values(userContext.user.chats) );
+        setChats(Object.values(userContext.user.chats));
     }
 
     function searchCompanion() {
@@ -53,9 +52,8 @@ export function Messenger() {
         let dialogUIDs = userContext.user.dialogs
             ? Object.values(userContext.user.dialogs).map(dialog => dialog.userUid)
             : [];
-        searchCompanionDB(dialogUIDs, userContext.user,
+        postSearchCompanion(dialogUIDs, userContext.user,
             (uid) => {
-                getUser(userContext.user.uid, userContext.setUser)
                 history.push('/messenger/dialog/' + uid)
             })
     }

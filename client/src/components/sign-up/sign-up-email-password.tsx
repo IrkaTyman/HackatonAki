@@ -1,30 +1,33 @@
 import React, {useContext} from 'react'
 import {UserContext} from "../../context/user-context";
 import {InputEmpty} from "../shared/inputs/input-empty";
-import {useHistory} from "react-router-dom";
-import cat3 from '../../image/cat3.png';
+import {Redirect, useHistory, useLocation} from "react-router-dom";
 import {useForm} from "../../hooks/useForm";
 import {signUpEmail} from "../../firebase/sign";
+import {User} from "../../types";
+
+const cat3 = require('../../image/cat3.png');
 
 export function SignUpEmailPassword() {
     const userContext = useContext(UserContext);
     const {form, errors, checkErrors, changeForm} = useForm(["password", "email", "repeatPassword"])
     const history = useHistory();
+    const {state} = useLocation<{ user: User } | null>()
 
     function submitName() {
-        if (!userContext || !form) return;
-
+        if(!userContext || !state) return
         if (!form.email || !form.password || form.password != form.repeatPassword) {
             checkErrors(["email", "email", "repeatPassword"])
         } else {
             signUpEmail(form.email, form.password, (uid) => {
-                userContext.setUser({...userContext.user, email: form.email, password: form.password, uid});
+                userContext.setUser({...state.user, email: form.email, password: form.password, uid});
                 history.push("/sign-up/photo")
             })
         }
     }
 
-    if (!form || !errors) return null;
+    if(!state) return <Redirect to={"/"}/>
+    if (!errors) return null;
     return (
         <div className="sign_up_email_password_page page h100per">
             <div className="big-header">О серьезном</div>

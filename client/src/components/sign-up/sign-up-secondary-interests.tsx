@@ -4,7 +4,7 @@ import {UserContext} from "../../context/user-context";
 import DropdownTreeSelect, {TreeNode} from "react-dropdown-tree-select";
 import {InputEmpty} from "../shared/inputs/input-empty";
 import {useHistory} from "react-router-dom";
-import {getSecondaryInterests} from "../../firebase/get";
+import {getSecondaryInterests} from "../../api/interests";
 
 type InterestsKey = 'sport' | 'science' | 'technology' | 'business' | 'art'
 
@@ -87,12 +87,12 @@ export function SignUpSecondaryInterests() {
     }
 
     function checkAvailabilityMainInterests(key: string) {
-        if (!userContext) return;
+        if (!userContext || !userContext.user) return;
         return Object.keys(userContext.user.mainInterests).includes(key)
     }
 
     function submitInterests() {
-        if (!userContext) return;
+        if (!userContext || !userContext.user) return;
 
         let newInterests: { [key: string]: { priority: number, activity: number } } = {}
         Object.keys(interests).map(key => {

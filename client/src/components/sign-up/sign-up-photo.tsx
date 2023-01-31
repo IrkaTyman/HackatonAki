@@ -2,7 +2,7 @@ import React, {useState, useContext, useEffect, useRef} from "react";
 import {UserContext} from "../../context/user-context";
 import './style.scss';
 import {useHistory} from "react-router-dom";
-import {loadImage, getUrl} from "../../firebase/image-action";
+import {loadFile, getFileUrl} from "../../api/file";
 
 export function SignUpPhoto() {
     const [image, setImage] = useState("")
@@ -14,14 +14,14 @@ export function SignUpPhoto() {
     const history = useHistory();
 
     useEffect(() => {
-        getUrl('images/default/cat2.png', (url) => {
+        getFileUrl('images/default/cat2.png', (url) => {
             setLoading(false)
             setDefaultImage(url)
         })
     }, [])
 
     function load() {
-        if (!inputRef.current || !inputRef.current.files || !userContext) return
+        if (!inputRef.current || !inputRef.current.files || !userContext || !userContext.user) return
 
         let file = inputRef.current.files.item(0);
         if (file == null) return;
@@ -30,12 +30,12 @@ export function SignUpPhoto() {
         if (!(format.test(file.name))) setError(true)
         else {
             setError(false);
-            loadImage("images/users/" + userContext.user.uid, file, setImage)
+            loadFile("images/users/" + userContext.user.uid, file, setImage)
         }
     }
 
     function submitImage() {
-        if (error || !userContext) return;
+        if (error || !userContext || !userContext.user) return;
         userContext.user.imageUrl = image || defaultImage;
         userContext.setUser({...userContext.user})
         history.push("/sign-up/main-interests")

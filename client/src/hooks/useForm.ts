@@ -1,15 +1,11 @@
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
 
 type Form = { [key: string]: string }
 type Errors = { [key: string]: { [key: string]: boolean } }
 
 export function useForm(fields: string[]) {
-    const [form, setForm] = useState<Form | null>(null)
+    const [form, setForm] = useState<Form>(getInitialForm())
     const [errors, setErrors] = useState<Errors | null>(null)
-
-    useEffect(() => {
-        getInitialForm()
-    }, [])
 
     function getInitialForm() {
         const form: Form = {}
@@ -35,8 +31,8 @@ export function useForm(fields: string[]) {
             }
         })
 
-        setForm(form)
         setErrors(errors)
+        return form
     }
 
     function changeForm(key: string, value: string) {
